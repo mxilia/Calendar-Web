@@ -18,48 +18,14 @@
         <div id="content-holder">
             <div id="event-holder">
                 <div class="topic"> Upcoming Event </div>
-                <div class="event-box" id="upcoming-event">
-                    <div class="event">
-                        <div class="event-child event-name">Event 1</div>
-                        <div class="event-child time-text">20/02/2023 (15:01) - 21/02/2023 (15:01)</div>
-                        <div class="event-child event-tag">Work</div>
-                        <div class="status-circle bg-green">
-                            <div class="status-inner"></div>
-                        </div>
-                    </div>
-                    <div class="event">
-                        <div class="event-child event-name">Event 1</div>
-                        <div class="event-child time-text">20/02/2023 (15:01) - 21/02/2023 (15:01)</div>
-                        <div class="event-child event-tag">Work</div>
-                        <div class="status-circle bg-green">
-                            <div class="status-inner"></div>
-                        </div>
-                    </div>
-                </div>
+                <div class="event-box" id="upcoming-event"></div>
                 <div class="topic"> Past Event </div>
-                <div class="event-box" id="past-event">
-                    <div class="event">
-                        <div class="event-child event-name">Event 1</div>
-                        <div class="event-child time-text">20/02/2023 (15:01) - 21/02/2023 (15:01)</div>
-                        <div class="event-child event-tag">Work</div>
-                        <div class="status-circle bg-red">
-                            <div class="status-inner"></div>
-                        </div>
-                    </div>
-                    <div class="event">
-                        <div class="event-child event-name">Event 1</div>
-                        <div class="event-child time-text">20/02/2023 (15:01) - 21/02/2023 (15:01)</div>
-                        <div class="event-child event-tag">Work</div>
-                        <div class="status-circle bg-red">
-                            <div class="status-inner"></div>
-                        </div>
-                    </div>
-                </div>
+                <div class="event-box" id="past-event"></div>
             </div>
             <div id="calendar-holder">
                 <div class="topic"> Calendar </div>
                 <div id="calendar">
-                    <div id="calendar-date">Friday, 15 August 2025</div>
+                    <div id="calendar-date"></div>
                     <div class="item-center border-bottom-right-white">Monday</div>
                     <div class="item-center border-bottom-right-white">Tuesday</div>
                     <div class="item-center border-bottom-right-white">Wednesday</div>
@@ -73,7 +39,7 @@
     </div>
     <div id="remote">
         <div class="remote-button" onclick="toggle_box('add-form')">+</div>
-        <div class="remote-button">-</div>
+        <div class="remote-button" onclick="toggle_box('delete-form')">-</div>
         <div class="remote-button"></div>
     </div>
     <div id="bg-blur"></div>
@@ -82,20 +48,26 @@
         <div class="close-button" onclick="toggle_box('add-form')">x</div>
         <form class="event-form" id="event-form">
             <label>Event name</label><br>
-            <input type="text" name="event_name" required><br>
+            <input type="text" name="event_name"><br>
             <label>Tag name</label><br>
-            <input type="text" name="tag_name" required><br>
+            <input type="text" name="tag_name"><br>
             <label>Description</label><br>
-            <input type="text" name="desc_text" required><br>
+            <input type="text" name="desc_text"><br>
             <label>Start</label><br>
-            <input type="date" name="start_date" required>
-            <input type="time" name="start_time" required><br>
+            <input type="date" name="start_date">
+            <input type="time" name="start_time"><br>
             <label>End</label><br>
-            <input type="date" name="end_date" required>
-            <input type="time" name="end_time" required><br>
+            <input type="date" name="end_date">
+            <input type="time" name="end_time"><br>
             <button type="submit">OK</button>
         </form>
     </div>
+    
+    <div class="box-form" id="delete-form">
+        <div class="form-topic">Delete Event</div>
+        <div class="close-button" onclick="toggle_box('delete-form')">x</div>
+    </div>
+    <div class="notification" id="notification">hello</div>
     <script type="module" src="js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </body>

@@ -1,5 +1,6 @@
 :root {
     --default-bg-color: rgb(7, 7, 5);
+    --nav-height: 50px;
 }
 
 * {
@@ -15,11 +16,67 @@ input {
 
 nav {
     width: 100%;
-    height: 50px;
+    height: var(--nav-height);
     background-color: var(--default-bg-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+@keyframes increase {
+    0% {
+        top: 0;
+        transform: translateX(-50%) scale(0);
+    }
+    5% {
+        top: 15px;
+        transform: translateX(-50%) scale(1);
+    }
+    95% {
+        top: 15px;
+        transform: translateX(-50%) scale(1);
+    }
+    100% {
+        top: 0px;
+        transform: translateX(-50%) scale(0);
+    }
+}
+
+.animate_increase {
+    animation: increase 3s ease-in-out;
+}
+
+.notification {
+    padding: 10px;
+    border: 2px white solid;
+    background-color: var(--default-bg-color);
+    color: white;
+    border-radius: 7px;
+    z-index: 10;
+    transform: translateX(-50%) scale(0);
+    position: absolute;
+    top: 0px;
+    left: 50%;
+}
+
+.bg-red-change:hover {
+    background-color: rgba(235, 37, 37, 0.386);
+    transition: all 150ms ease-in-out;
+}
+
+.bg-grey-change:hover {
+    background-color: rgba(63, 63, 65, 0.386);
+    transition: all 150ms ease-in-out;
+}
+
+.prompt {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: white 2px solid;
+    background-color: black;
+    z-index: 2;
 }
 
 .event-form > button {
@@ -32,7 +89,7 @@ nav {
 
 .container {
     width: 100%;
-    height: calc(100vh - 50px);
+    height: calc(100vh - var(--nav-height));
     background-color: black;
     display: flex;
     align-items: center;
@@ -49,6 +106,7 @@ nav {
 .event-box {
     padding-top: 10px;
     width: 100%;
+    overflow: hidden;
     border: rgb(119, 119, 119) 2px solid;
     border-radius: 24px;
     flex: 1;
@@ -60,12 +118,15 @@ nav {
 
 .event {
     width: calc(100% - 20px);
+    background-color: black;
     height: 55px;
+    min-width: 300px;
     border: white 2px solid;
     border-radius: 15px;
     padding-top: 7px;
     padding-bottom: 7px;
     margin-bottom: 10px;
+    transition: all 150ms ease-in-out;
 }
 
 .event-child {
@@ -81,10 +142,10 @@ nav {
     margin-top: 3px;
     border: yellow 2px solid;
     color: yellow;
-    width: 40px;
+    padding-left: 6px;
+    padding-right: 6px;
     border-radius: 10px;
-    display: flex;
-    justify-content: center;
+    display: inline-block; 
 }
 
 .time-text {
@@ -108,6 +169,7 @@ nav {
 }
 
 .status-circle {
+    background-color: rgb(255, 39, 39);
     border: white 2px solid;
     border-radius: 8px;
     width: 12px;
@@ -152,16 +214,28 @@ nav {
 }
 
 .box-form {
-    width: 300px;
+    padding: 0px 10px 10px 0px;
     border: 2px white solid;
+    max-height: 80vh;
+    overflow: hidden;
     border-radius: 15px;
-    padding-bottom: 10px;
     background-color: var(--default-bg-color);
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2;
+}
+
+.box-form > .event {
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+.box-form > .event > .close-button {
+    position: relative;
+    top: -97%;
+    left: 93%;
 }
 
 .close-button {
@@ -199,7 +273,7 @@ nav {
     display: none;
 }
 
-#add-form {
+#add-form, #delete-form {
     display: none;
 }
 
@@ -287,4 +361,8 @@ nav {
     align-items: center;
     justify-content: center;
     gap: 5px;
+}
+
+#delete-form {
+    min-width: 300px;
 }
