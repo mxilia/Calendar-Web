@@ -103,10 +103,14 @@ nav {
     margin-top: 10px;
 }
 
+.event-box::-webkit-scrollbar {
+    display: none;
+}
+
 .event-box {
     padding-top: 10px;
     width: 100%;
-    overflow: hidden;
+    overflow: auto;
     border: rgb(119, 119, 119) 2px solid;
     border-radius: 24px;
     flex: 1;
@@ -179,7 +183,7 @@ nav {
     align-items: center;
     position: relative;
     top: -97%;
-    left: 93%;
+    left: 94%;
 }
 
 .border-bottom-white {
@@ -213,11 +217,15 @@ nav {
     justify-content: center;
 }
 
+.box-form::-webkit-scrollbar {
+    display: none;
+}
+
 .box-form {
     padding: 0px 10px 10px 0px;
     border: 2px white solid;
     max-height: 80vh;
-    overflow: hidden;
+    overflow: auto;
     border-radius: 15px;
     background-color: var(--default-bg-color);
     position: fixed;
@@ -263,6 +271,12 @@ nav {
     font-size: 18px;
 }
 
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 #bg-blur {
     width: 100vw;
     height: 100vh;
@@ -273,7 +287,7 @@ nav {
     display: none;
 }
 
-#add-form, #delete-form {
+#add-form, #delete-form, #event-info {
     display: none;
 }
 
@@ -365,4 +379,17 @@ nav {
 
 #delete-form {
     min-width: 300px;
+    height: 500px;
+}
+
+#event-info {
+    max-width: 400px;
+}
+
+#event-info > div > .status-circle, #event-info > div > .event-tag {
+    position: static;
+}
+
+#event-info > .text {
+    padding-left: 10px;
 }

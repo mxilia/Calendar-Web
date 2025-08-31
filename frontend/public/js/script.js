@@ -50,6 +50,10 @@ const element_container_id = (container_type, id) => {
     return container_id[container_type%3]+"_"+String(id);
 }
 
+const format_time = (start_str, end_str) => {
+    return format(start_str, "yyyy/MM/dd (HH:mm)") + " - " + format(end_str, "yyyy/MM/dd (HH:mm)");
+}
+
 const new_event = (data, container_type) => {
     if(has_some_empty(data)) return null;
 
@@ -66,7 +70,7 @@ const new_event = (data, container_type) => {
     event_time.classList.add('time-text');
     let start_time = new Date(data.start_time);
     let end_time = new Date(data.end_time);
-    event_time.innerText = format(start_time, "yyyy/MM/dd (HH:mm)") + " - " + format(end_time, "yyyy/MM/dd (HH:mm)");
+    event_time.innerText = format_time(start_time, end_time);
 
     const event_tag = document.createElement('div');
     event_tag.classList.add('event-child');
@@ -110,17 +114,40 @@ const add_event_containers = (data) => {
     // Upcoming Events
     const event_2 = new_event(data, 0);
     event_2.classList.add("bg-grey-change");
+    event_2.addEventListener("click", (e) => {
+        const current_target = e.currentTarget;
+        const data_target = events_data.find(item => String(item.id) === String(current_target.dataset.id));
+        open_info(data_target);
+        toggle_box('event-info');
+    });
     upcoming_event.appendChild(event_2);
 };
 
+const event_info = document.getElementById("event-info");
+const info_topic = event_info.querySelector(".form-topic");
+const info_time = event_info.querySelector(".info-time");
+const info_desc = event_info.querySelector(".info-desc");
+const info_tag = event_info.querySelector(".event-tag")
+const open_info = (data) => {
+    console.log(data);
+    if(has_some_empty(data)){
+        notify_message('Info has empty values.');
+        return;
+    }
+    info_topic.innerHTML = data.event_name;
+    info_time.innerHTML = "<strong>Time: </strong>" + format_time(data.start_time, data.end_time);
+    info_desc.innerHTML = "<strong>Description: </strong><br>" + data.desc_text;
+    info_tag.innerHTML = data.tag_name;
+}
+
 /*-- Fetch Events --*/
 
-let event_data = [];
+let events_data = [];
 
 const get_events = async () => {
     try {
         const response = await axios.get(backend_url)
-        event_data.push(...response.data);
+        events_data.push(...response.data);
     }
     catch(error){
         console.log(error);
@@ -129,7 +156,7 @@ const get_events = async () => {
 
 const set_up_events = async () => {
     await get_events();
-    for(const e of event_data) add_event_containers(e);
+    for(const e of events_data) add_event_containers(e);
 }
 
 set_up_events();
@@ -186,6 +213,7 @@ add_form.addEventListener("submit", async (e) => {
         const response = await axios.post(backend_url, event_data);
         if(response.data.message) notify_message(response.data.message);
         event_data["id"] = response.data.result[0].insertId;
+        events_data.push(event_data);
         add_event_containers(event_data);
         toggle_box('add-form');
         add_form.reset();
