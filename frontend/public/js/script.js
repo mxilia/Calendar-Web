@@ -54,6 +54,43 @@ const format_time = (start_str, end_str) => {
     return format(start_str, "yyyy/MM/dd (HH:mm)") + " - " + format(end_str, "yyyy/MM/dd (HH:mm)");
 }
 
+/*-- Event Related --*/
+
+const status_initial_color = [151, 255, 39];
+const status_final_color = [255, 39, 39];
+const change_order = [0, 1, 2];
+const diffs = [Math.abs(status_initial_color[0]-status_final_color[0]), Math.abs(status_initial_color[1]-status_final_color[1]), Math.abs(status_initial_color[2]-status_final_color[2])];
+
+const status_color = (start_time, end_time) => {
+    let start_time_js = new Date(start_time.replace(" ", "T"));
+    let end_time_js = new Date(end_time.replace(" ", "T"));
+    console.log(start_time_js, end_time_js);
+    if(end_time_js.getTime()<=today.getTime()) return `rgb(${status_final_color[0]}, ${status_final_color[1]}, ${status_final_color[2]})`;
+    let percentage = Math.min(100, Math.max((today.getTime()-start_time_js.getTime())/(end_time_js.getTime()-start_time_js.getTime())*100.0, 0));
+    let color_reduction = Math.floor(percentage/100.0*(diffs[0]+diffs[1]+diffs[2]));
+    let color = status_initial_color;
+    let idx = 0;
+    while(color_reduction>0 && idx<change_order.length){
+        let diff = status_final_color[change_order[idx]]-status_initial_color[change_order[idx]];
+        if(diff == 0){
+            idx++
+            continue;
+        }
+        let sign = Math.abs(diff)/diff;
+        if(color_reduction>=Math.abs(diff)){
+            color[change_order[idx]]+=diff;
+            color_reduction-=Math.abs(diff);
+        }
+        else {
+            color[change_order[idx]]+=sign*color_reduction;
+            color_reduction = 0;
+        }
+        idx++;
+    }
+    console.log(`rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+}
+
 const new_event = (data, container_type) => {
     if(has_some_empty(data)) return null;
 
@@ -79,7 +116,7 @@ const new_event = (data, container_type) => {
 
     const event_status = document.createElement('div');
     event_status.classList.add('status-circle');
-    event_status.classList.add('bg-green');
+    event_status.style.backgroundColor = status_color(data.start_time, data.end_time);
 
     const event_status_border = document.createElement('div');
     event_status_border.classList.add('status-inner');
@@ -102,6 +139,7 @@ const delete_event_containers = (element) => {
 };
 
 const add_event_containers = (data) => {
+    console.log(data);
     const event = new_event(data, 2);
     // Deletion Form
     if(event != null){
@@ -127,9 +165,9 @@ const event_info = document.getElementById("event-info");
 const info_topic = event_info.querySelector(".form-topic");
 const info_time = event_info.querySelector(".info-time");
 const info_desc = event_info.querySelector(".info-desc");
-const info_tag = event_info.querySelector(".event-tag")
+const info_tag = event_info.querySelector(".event-tag");
+const info_status = event_info.querySelector(".status-circle");
 const open_info = (data) => {
-    console.log(data);
     if(has_some_empty(data)){
         notify_message('Info has empty values.');
         return;
@@ -138,6 +176,7 @@ const open_info = (data) => {
     info_time.innerHTML = "<strong>Time: </strong>" + format_time(data.start_time, data.end_time);
     info_desc.innerHTML = "<strong>Description: </strong><br>" + data.desc_text;
     info_tag.innerHTML = data.tag_name;
+    info_status.style.backgroundColor = status_color(data.start_time, data.end_time);
 }
 
 /*-- Fetch Events --*/
@@ -167,7 +206,7 @@ const cell_class = ['border-bottom-white', 'border-right-white'];
 const calendar = document.getElementById("calendar");
 const today = new Date();
 const first_day_of_month = startOfMonth(today);
-const today_str = format(today, "EEEE, dd MMMM yyyy")
+const today_str = format(today, "EEEE, dd MMMM yyyy");
 const today_num_day = getDate(today);
 const weekday_num = first_day_of_month.getDay();
 let offset = 0;
@@ -180,7 +219,7 @@ for(let i=0;i<35;i++){
     new_div.classList.add('item-center');
     new_div.classList.add('bg-grey-change');
     if(i>=weekday_num-1) {
-        if(i==today_num_day-1+offset) new_div.style.backgroundColor = "red";
+        if(i==today_num_day-1+offset) new_div.style.backgroundColor = "rgba(66, 64, 79, 0.67)";
         new_div.innerHTML = i+1-offset;
     }
     else offset++;
@@ -196,6 +235,16 @@ const validate_data = (data) => {
         notify_message('Please fill out the empty fields.');
         return false;
     }
+    const event_start_date = new Date(new Date(`${data.start_date}T${data.start_time}:00`));
+    const event_end_date = new Date(`${data.end_date}T${data.end_time}:00`);
+    if(event_end_date.getTime()<today.getTime()){
+        notify_message("Event ended long time ago.");
+        return false;
+    }
+    if(event_start_date.getTime()>event_end_date.getTime()){
+        notify_message("Event ended before it even started.");
+        return false;
+    }
     return true;
 };
 
@@ -204,17 +253,17 @@ add_form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const form_data = new FormData(add_form);
     let event_data = Object.fromEntries(form_data.entries());
+    if(validate_data(event_data) == false) return;
     if(event_data.end_date && event_data.end_time) event_data.end_time = `${event_data.end_date} ${event_data.end_time}:00`;
     if(event_data.start_date && event_data.start_time) event_data.start_time = `${event_data.start_date} ${event_data.start_time}:00`;
     delete event_data.start_date;
     delete event_data.end_date;
-    if(validate_data(event_data) == false) return; // TODO 1: Validate event data.
     try {
         const response = await axios.post(backend_url, event_data);
         if(response.data.message) notify_message(response.data.message);
         event_data["id"] = response.data.result[0].insertId;
-        events_data.push(event_data);
         add_event_containers(event_data);
+        events_data.push(event_data);
         toggle_box('add-form');
         add_form.reset();
     }

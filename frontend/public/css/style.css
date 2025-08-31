@@ -164,12 +164,8 @@ nav {
     height: 9px;
 }
 
-.bg-green {
-    background-color: greenyellow;
-}
-
 .bg-red {
-    background-color: rgb(255, 39, 39);
+    background-color: rgb(151, 255, 39);
 }
 
 .status-circle {
