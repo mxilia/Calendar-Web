@@ -9,8 +9,13 @@ const delete_form = document.getElementById("delete-form");
 const notification_box = document.getElementById("notification");
 const blur = document.getElementById("bg-blur");
 const upcoming_event = document.getElementById("upcoming-event");
+const past_event = document.getElementById("past-event");
 
 /*-- Essiential --*/
+
+const get_time = (date) => {
+    return new Date(date).getTime()
+}
 
 const toggle_box = (element_name) => {
     const element = document.getElementById(element_name);
@@ -54,21 +59,59 @@ const format_time = (start_str, end_str) => {
     return format(start_str, "yyyy/MM/dd (HH:mm)") + " - " + format(end_str, "yyyy/MM/dd (HH:mm)");
 }
 
+
+/*-- Calendar HTML --*/
+
+const cell_class = ['border-bottom-white', 'border-right-white'];
+const calendar = document.getElementById("calendar");
+let loaded_day = new Date();
+let today = new Date();
+let first_day_of_month = startOfMonth(today);
+let today_str = format(today, "EEEE, dd MMMM yyyy");
+let today_num_day = getDate(today);
+let weekday_num = first_day_of_month.getDay();
+let month_numdays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+let offset = 0;
+
+const calendar_construct = (first=false) => {
+    if(today.getDay()==loaded_day.getDay() && !first) return;
+    loaded_day = new Date();
+    first_day_of_month = startOfMonth(today);
+    today_str = format(today, "EEEE, dd MMMM yyyy");
+    today_num_day = getDate(today);
+    weekday_num = first_day_of_month.getDay();
+    month_numdays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    calendar.innerHTML = `<div id=\"calendar-date\">${today_str}</div><div class=\"item-center border-bottom-right-white\">Monday</div><div class=\"item-center border-bottom-right-white\">Tuesday</div><div class=\"item-center border-bottom-right-white\">Wednesday</div><div class=\"item-center border-bottom-right-white\">Thursday</div><div class=\"item-center border-bottom-right-white\">Friday</div><div class=\"item-center border-bottom-right-white \">Saturday</div><div class=\"item-center border-bottom-white\">Sunday</div>`
+    for(let i=0;i<35;i++){
+        const new_div = document.createElement('div');
+        new_div.classList.add('item-center');
+        new_div.classList.add('bg-grey-change');
+        if(i>=weekday_num-1 && i<month_numdays+weekday_num-2) {
+            if(i==today_num_day-1+offset) new_div.style.backgroundColor = "rgba(66, 64, 79, 0.67)";
+            new_div.innerHTML = i+1-offset;
+        }
+        else offset++;
+        if(i/7<4) new_div.classList.add(cell_class[0]);
+        if(i%7<6) new_div.classList.add(cell_class[1]);
+        calendar.appendChild(new_div);
+    } 
+}
+
 /*-- Event Related --*/
 
-const status_initial_color = [151, 255, 39];
-const status_final_color = [255, 39, 39];
+const status_initial_color = [0, 255, 39];
+const status_final_color = [230, 39, 39];
 const change_order = [0, 1, 2];
 const diffs = [Math.abs(status_initial_color[0]-status_final_color[0]), Math.abs(status_initial_color[1]-status_final_color[1]), Math.abs(status_initial_color[2]-status_final_color[2])];
+const total_rgb_diff = diffs[0]+diffs[1]+diffs[2];
 
 const status_color = (start_time, end_time) => {
     let start_time_js = new Date(start_time.replace(" ", "T"));
     let end_time_js = new Date(end_time.replace(" ", "T"));
-    console.log(start_time_js, end_time_js);
     if(end_time_js.getTime()<=today.getTime()) return `rgb(${status_final_color[0]}, ${status_final_color[1]}, ${status_final_color[2]})`;
-    let percentage = Math.min(100, Math.max((today.getTime()-start_time_js.getTime())/(end_time_js.getTime()-start_time_js.getTime())*100.0, 0));
-    let color_reduction = Math.floor(percentage/100.0*(diffs[0]+diffs[1]+diffs[2]));
-    let color = status_initial_color;
+    let percentage = Math.min(1.0, Math.max((today.getTime()-start_time_js.getTime())/(end_time_js.getTime()-start_time_js.getTime()), 0.0));
+    let color_reduction = Math.floor(percentage*total_rgb_diff);
+    let color = [...status_initial_color];
     let idx = 0;
     while(color_reduction>0 && idx<change_order.length){
         let diff = status_final_color[change_order[idx]]-status_initial_color[change_order[idx]];
@@ -87,8 +130,38 @@ const status_color = (start_time, end_time) => {
         }
         idx++;
     }
-    console.log(`rgb(${color[0]}, ${color[1]}, ${color[2]})`);
     return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+}
+
+const set_time_update = async () => {
+    const intervalId = setInterval(() => {
+        today = new Date();
+        calendar_construct();
+        for(let i=first_ongoing_event;i<events_data.length;i++){
+            const data = events_data[i];
+            const e = document.getElementById(element_container_id(0, data.id));
+            if(e == null) continue;
+            if(get_time(data.end_time)<today.getTime()){
+                first_ongoing_event++;
+                upcoming_to_past_event(e, data);
+                continue;
+            }
+            const e_status = e.querySelector(".status-circle");
+            e_status.style.backgroundColor = status_color(data.start_time, data.end_time);
+        }
+    }, 2000);
+}
+
+let first_ongoing_event = 0;
+
+const get_first_ongoing_event = () => {
+    let l = 0, r = events_data.length;
+    while(l<r){
+        let mid = (l+r)>>1;
+        if(get_time(events_data[mid].end_time)>=today.getTime()) r = mid;
+        else l = mid+1;
+    }
+    first_ongoing_event = l;
 }
 
 const new_event = (data, container_type) => {
@@ -112,6 +185,8 @@ const new_event = (data, container_type) => {
     const event_tag = document.createElement('div');
     event_tag.classList.add('event-child');
     event_tag.classList.add('event-tag');
+    event_tag.style.color = data.tag_rgb;
+    event_tag.style.border = data.tag_rgb + " 2px solid";
     event_tag.innerText = data.tag_name;
 
     const event_status = document.createElement('div');
@@ -131,15 +206,28 @@ const new_event = (data, container_type) => {
     return event;
 }
 
+const upcoming_to_past_event = (element, data) => {
+    element.remove();
+    const event = new_event(data, 0);
+    event.classList.add("bg-grey-change");
+    event.addEventListener("click", (e) => {
+        const current_target = e.currentTarget;
+        const data_target = events_data.find(item => String(item.id) === String(current_target.dataset.id));
+        open_info(data_target);
+        toggle_box('event-info');
+    });
+    past_event.appendChild(event);
+}
+
 const delete_event_containers = (element) => {
     delete_event(element.dataset.id);
-    delete_form.removeChild(element);
+    delete_event_holder.removeChild(element);
     const upcoming_child = document.getElementById(element_container_id(0, element.dataset.id));
     if(upcoming_child) upcoming_child.remove();
 };
 
+let delete_event_holder = null;
 const add_event_containers = (data) => {
-    console.log(data);
     const event = new_event(data, 2);
     // Deletion Form
     if(event != null){
@@ -147,9 +235,9 @@ const add_event_containers = (data) => {
             delete_event_containers(e.currentTarget);
         });
         event.classList.add("bg-red-change");
-        delete_form.appendChild(event);
+        delete_event_holder.appendChild(event);
     }
-    // Upcoming Events
+    // Upcoming Events / Past Events
     const event_2 = new_event(data, 0);
     event_2.classList.add("bg-grey-change");
     event_2.addEventListener("click", (e) => {
@@ -158,7 +246,8 @@ const add_event_containers = (data) => {
         open_info(data_target);
         toggle_box('event-info');
     });
-    upcoming_event.appendChild(event_2);
+    if(new Date(data.end_time).getTime()<=today.getTime()) past_event.appendChild(event_2);
+    else upcoming_event.appendChild(event_2);
 };
 
 const event_info = document.getElementById("event-info");
@@ -175,7 +264,9 @@ const open_info = (data) => {
     info_topic.innerHTML = data.event_name;
     info_time.innerHTML = "<strong>Time: </strong>" + format_time(data.start_time, data.end_time);
     info_desc.innerHTML = "<strong>Description: </strong><br>" + data.desc_text;
-    info_tag.innerHTML = data.tag_name;
+    info_tag.innerHTML = data.tag_name; 
+    info_tag.style.color = data.tag_rgb;
+    info_tag.style.border = data.tag_rgb + " 2px solid";
     info_status.style.backgroundColor = status_color(data.start_time, data.end_time);
 }
 
@@ -193,40 +284,23 @@ const get_events = async () => {
     }
 };
 
-const set_up_events = async () => {
-    await get_events();
+const show_all_events = () => {
+    upcoming_event.replaceChildren();
+    past_event.replaceChildren();
+    delete_form.innerHTML = "<div class=\"form-topic\">Delete Event</div><div class=\"close-button\" onclick=\"toggle_box('delete-form')\">x</div> <div id=\"delete-event-holder\"></div>";
+    delete_event_holder = document.getElementById("delete-event-holder");
     for(const e of events_data) add_event_containers(e);
 }
 
-set_up_events();
-
-/*-- Calendar HTML --*/
-
-const cell_class = ['border-bottom-white', 'border-right-white'];
-const calendar = document.getElementById("calendar");
-const today = new Date();
-const first_day_of_month = startOfMonth(today);
-const today_str = format(today, "EEEE, dd MMMM yyyy");
-const today_num_day = getDate(today);
-const weekday_num = first_day_of_month.getDay();
-let offset = 0;
-
-const calendar_date = document.getElementById("calendar-date");
-if(first_day_of_month) calendar_date.innerHTML = today_str;
-
-for(let i=0;i<35;i++){
-    const new_div = document.createElement('div');
-    new_div.classList.add('item-center');
-    new_div.classList.add('bg-grey-change');
-    if(i>=weekday_num-1) {
-        if(i==today_num_day-1+offset) new_div.style.backgroundColor = "rgba(66, 64, 79, 0.67)";
-        new_div.innerHTML = i+1-offset;
-    }
-    else offset++;
-    if(i/7<4) new_div.classList.add(cell_class[0]);
-    if(i%7<6) new_div.classList.add(cell_class[1]);
-    calendar.appendChild(new_div);
+const set_up_events = async () => {
+    await get_events();
+    calendar_construct(true);
+    show_all_events();
+    get_first_ongoing_event();
+    set_time_update();
 }
+
+set_up_events();
 
 /*-- Form Data Management --*/
 
@@ -256,14 +330,20 @@ add_form.addEventListener("submit", async (e) => {
     if(validate_data(event_data) == false) return;
     if(event_data.end_date && event_data.end_time) event_data.end_time = `${event_data.end_date} ${event_data.end_time}:00`;
     if(event_data.start_date && event_data.start_time) event_data.start_time = `${event_data.start_date} ${event_data.start_time}:00`;
+    let hex = event_data.tag_rgb;
+    delete event_data.hex;
+    let r = parseInt(hex[1]+hex[2], 16), g = parseInt(hex[3]+hex[4], 16), b = parseInt(hex[5]+hex[6], 16);
     delete event_data.start_date;
     delete event_data.end_date;
+    event_data.tag_rgb = `rgb(${r}, ${g}, ${b})`;
     try {
         const response = await axios.post(backend_url, event_data);
         if(response.data.message) notify_message(response.data.message);
         event_data["id"] = response.data.result[0].insertId;
-        add_event_containers(event_data);
         events_data.push(event_data);
+        events_data.sort((a, b) => new Date(a.end_time).getTime() - new Date(b.end_time).getTime());
+        if(get_time(event_data.end_time)<today.getTime()) first_ongoing_event+=1;
+        show_all_events();
         toggle_box('add-form');
         add_form.reset();
     }

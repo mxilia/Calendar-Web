@@ -40,7 +40,11 @@
     <div id="remote">
         <div class="remote-button" onclick="toggle_box('add-form')">+</div>
         <div class="remote-button" onclick="toggle_box('delete-form')">-</div>
-        <div class="remote-button"></div>
+        <a href="https://github.com/mxilia/Calendar-Web" target="_blank">
+            <div class="remote-button">
+                <img src="assets/github_icon.png" id="github-logo">
+            </div>
+        </a>
     </div>
     <div id="bg-blur"></div>
     <div class="box-form" id="add-form">
@@ -51,8 +55,10 @@
             <input type="text" name="event_name"><br>
             <label>Tag name</label><br>
             <input type="text" name="tag_name"><br>
+            <label>Tag color</label><br>
+            <input type="color" class="color_picker" name="tag_rgb" value="#F54927"><br>
             <label>Description</label><br>
-            <input type="text" name="desc_text"><br>
+            <textarea type="text" name="desc_text"></textarea><br>
             <label>Start</label><br>
             <input type="date" name="start_date">
             <input type="time" name="start_time"><br>
@@ -65,6 +71,7 @@
     <div class="box-form" id="delete-form">
         <div class="form-topic">Delete Event</div>
         <div class="close-button" onclick="toggle_box('delete-form')">x</div>
+        <div id="delete-event-holder"></div>
     </div>
     <div class="notification" id="notification">hello</div>
     <div class="box-form" id="event-info">
