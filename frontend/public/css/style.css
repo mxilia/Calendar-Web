@@ -275,6 +275,10 @@ nav {
     align-items: center;
 }
 
+.text {
+    overflow-wrap: break-word;
+}
+
 #bg-blur {
     width: 100vw;
     height: 100vh;

@@ -58,7 +58,7 @@ app.post('/', async (req, res) => {
 
 app.get('/', async (req, res) => {
     try {
-        const [result] = await conn.query('SELECT * FROM user_events');
+        const [result] = await conn.query('SELECT * FROM user_events ORDER BY end_time');
         if(result.length === 0) return res.status(404).json({ error: 'User not found.', message: 'User not found.'})
         res.json(result);
     }
