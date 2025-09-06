@@ -13,6 +13,14 @@ const past_event = document.getElementById("past-event");
 
 /*-- Essiential --*/
 
+const parse_to_local = (isoString) => {
+    // Remove trailing Z if present
+    if (isoString.endsWith("Z")) {
+      isoString = isoString.slice(0, -1);
+    }
+    return isoString;
+}
+
 const get_time = (date) => {
     return new Date(date).getTime()
 }
@@ -162,6 +170,7 @@ const get_first_ongoing_event = () => {
         else l = mid+1;
     }
     first_ongoing_event = l;
+    console.log(first_ongoing_event)
 }
 
 const new_event = (data, container_type) => {
@@ -282,6 +291,7 @@ const get_events = async () => {
     catch(error){
         console.log(error);
     }
+    for(let e of events_data) e.start_time = parse_to_local(e.start_time), e.end_time = parse_to_local(e.end_time);
 };
 
 const show_all_events = () => {
@@ -342,7 +352,6 @@ add_form.addEventListener("submit", async (e) => {
         event_data["id"] = response.data.result[0].insertId;
         events_data.push(event_data);
         events_data.sort((a, b) => new Date(a.end_time).getTime() - new Date(b.end_time).getTime());
-        if(get_time(event_data.end_time)<today.getTime()) first_ongoing_event+=1;
         show_all_events();
         toggle_box('add-form');
         add_form.reset();
