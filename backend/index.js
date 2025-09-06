@@ -1,31 +1,53 @@
 const express = require('express');
 const bodyparser = require('body-parser');
 const cors = require('cors');
-const mysql = require('mysql2/promise')
+const mysql = require('mysql2/promise');
 
-require('dotenv').config()
+//require('dotenv').config()
 
 const app = express();
 const port = process.env.BACK_END_PORT || 3000;
 
 app.use(bodyparser.json());
-app.use(cors({origin: `http://localhost:8000`}));
+app.use(cors(/*{origin: `http://localhost:8000`}*/));
 
 let conn = null;
 const connect_database = async() => {
-    try {
-        conn = await mysql.createConnection({
-            host: 'localhost',
-            user: 'root',
-            password: '1234',
-            database: 'calendardb',
-            port: 3306
-        });
-    }
-    catch(error){
-        console.log("Error connecting database:", error.message);
+    while(!conn){
+        try {
+            conn = await mysql.createConnection({
+                host: 'db',
+                user: 'root',
+                password: '1234',
+                database: 'calendardb',
+                port: 3306
+            });
+        }
+        catch(error){
+            console.log("Error connecting database:", error.message);
+            console.log("Reconnecting db.")
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
     }
     console.log("Successfully connected to db.")
+    
+    const [table] = await conn.query(`SHOW TABLES LIKE 'user_events'`);
+    if(table.length == 0){
+        await conn.query(`
+                        CREATE TABLE user_events (
+                            id int NOT NULL AUTO_INCREMENT,
+                            event_name varchar(50) DEFAULT NULL,
+                            tag_name varchar(10) DEFAULT NULL,
+                            desc_text mediumtext,
+                            start_time datetime DEFAULT NULL,
+                            end_time datetime DEFAULT NULL,
+                            tag_rgb varchar(20) DEFAULT NULL,
+                            PRIMARY KEY (id)
+                        ) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                        `);
+        console.log("Table created.")
+    }
+    else console.log("Table existed.")
 }
 
 app.delete('/:id', async (req, res) => {
